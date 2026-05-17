@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>API Verify — Is your API relay serving the model it claims?</title>
+<meta name="description" content="Open-source evidence-based verifier for OpenAI / Anthropic / Gemini API relays. Detect cheap-model substitution, parameter drops, capability degradation." />
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<header>
+  <div class="bar">
+    <a class="logo" href="/">API&nbsp;Verify</a>
+    <nav>
+      <a href="https://github.com/study8677/api_verify" target="_blank" rel="noopener">GitHub</a>
+      <a href="#how">How it works</a>
+      <a href="#privacy">Privacy</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Is your API relay <em>actually</em> serving the model it claims?</h1>
+    <p class="lead">
+      Paste a relay endpoint, an API key, and the model name. We run 5 capability and
+      protocol probes designed to expose cheap-model substitution, parameter drops,
+      and capability degradation common to premium models like
+      <code>gpt-4.1</code>, <code>claude-opus-4-x</code>, and <code>gemini-2.5-pro</code>.
+    </p>
+    <p class="caveat">
+      Result is an <strong>evidence-based risk score</strong>, not cryptographic proof.
+      <code>model</code>/<code>usage</code>/<code>system_fingerprint</code> can all be forged.
+    </p>
+  </section>
+
+  <section class="form-card">
+    <form id="verify-form">
+      <div class="grid">
+        <label>
+          <span>Protocol</span>
+          <select name="protocol" id="protocol">
+            <option value="openai">OpenAI-compatible</option>
+            <option value="anthropic">Anthropic native (/v1/messages)</option>
+            <option value="gemini">Gemini native (generateContent)</option>
+          </select>
+        </label>
+        <label class="span-2">
+          <span>Endpoint base URL</span>
+          <input name="endpoint" id="endpoint" required
+                 placeholder="https://api.example.com/v1"
+                 autocomplete="off" />
+          <small class="hint" id="endpoint-hint">For OpenAI-compatible relays. Include the path up to but not including <code>/chat/completions</code>.</small>
+        </label>
+        <label class="span-3">
+          <span>API key</span>
+          <input name="api_key" id="api_key" required type="password"
+                 placeholder="sk-... / your relay key"
+                 autocomplete="off" />
+          <small class="hint">We forward this once to run the probes, then drop it. We don't store keys.</small>
+        </label>
+        <label class="span-2">
+          <span>Model name to verify</span>
+          <input name="model" id="model" required placeholder="gpt-4.1 / claude-opus-4-5 / gemini-2.5-pro"
+                 autocomplete="off" />
+        </label>
+        <label>
+          <span>Mode</span>
+          <select name="mode" id="mode">
+            <option value="quick">Quick — 5 probes, ~10s</option>
+            <option value="deep">Deep — 7 probes, ~25s</option>
+          </select>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="submit" type="submit">Run verification</button>
+        <span id="status" class="status"></span>
+      </div>
+    </form>
+  </section>
+
+  <section id="result" class="result hidden">
+    <div class="verdict-card">
+      <div class="overall">
+        <div class="score" id="overall-score">—</div>
+        <div class="verdict" id="overall-verdict">—</div>
+      </div>
+      <div class="meta">
+        <div><span class="k">Probes</span> <span id="meta-probes">—</span></div>
+        <div><span class="k">Latency p50</span> <span id="meta-p50">—</span> ms</div>
+        <div><span class="k">Latency max</span> <span id="meta-max">—</span> ms</div>
+        <div><span class="k">Remaining/hour</span> <span id="meta-remaining">—</span></div>
+      </div>
+    </div>
+    <div class="dimensions" id="dimensions"></div>
+    <h3>Per-probe evidence</h3>
+    <div class="evidence" id="evidence"></div>
+    <p class="caveat" id="note"></p>
+  </section>
+
+  <section id="how" class="info">
+    <h2>How the probes work</h2>
+    <ul>
+      <li><strong>Metadata echo</strong> — Does the response shape and returned <code>model</code> field line up with what the request asked for?</li>
+      <li><strong>JSON mode</strong> — Tells if the relay honors <code>response_format: json_object</code> or silently drops it.</li>
+      <li><strong>Strict tool calling</strong> — Tests whether the relay preserves OpenAI-style strict tool schemas. Cheap models often degrade tool calls to plain text.</li>
+      <li><strong>Error semantics</strong> — Sends an intentionally invalid <code>temperature=99</code>. Real upstreams return a 4xx that names the offending parameter. Relays that silently clamp it are suspicious.</li>
+      <li><strong>Long-context needle</strong> — Plants a passcode inside ~12K characters of padding and asks for it back. Substituted cheap models fail here.</li>
+    </ul>
+    <p>Deep mode additionally runs a deterministic-arithmetic reasoning probe and a knowledge-cutoff probe.</p>
+  </section>
+
+  <section id="privacy" class="info">
+    <h2>Privacy &amp; safety</h2>
+    <ul>
+      <li>API keys are used once per request and dropped from memory after the verification. They are not written to disk, logs, or any storage.</li>
+      <li>We do not log request or response bodies. Only protocol, model, IP-prefix, and timing.</li>
+      <li>Rate-limited to 5 verifications per hour per IP to limit cost &amp; abuse.</li>
+      <li>For your own safety: prefer a short-lived / low-budget key when testing untrusted relays.</li>
+      <li>Source: <a href="https://github.com/study8677/api_verify" target="_blank" rel="noopener">github.com/study8677/api_verify</a></li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <p>API Verify · <a href="https://github.com/study8677/api_verify" target="_blank" rel="noopener">source</a> · evidence is not proof</p>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

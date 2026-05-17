@@ -1,0 +1,38 @@
+[Unit]
+Description=API Verify (apiverify.aidcmo.com) FastAPI service
+After=network.target
+
+[Service]
+Type=simple
+User=apiverify
+Group=apiverify
+WorkingDirectory=/opt/api-verify
+Environment="PATH=/opt/api-verify/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="APIVERIFY_RATE_LIMIT_PER_HOUR=5"
+Environment="APIVERIFY_REDIS_URL=redis://172.17.0.1:6379/3"
+Environment="LOG_LEVEL=INFO"
+ExecStart=/opt/api-verify/.venv/bin/uvicorn api_verify.web.app:app \
+    --host 127.0.0.1 --port 8083 \
+    --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=on-failure
+RestartSec=5
+
+# Hardening: this process makes outbound HTTP calls to user-supplied URLs and
+# parses untrusted JSON. Keep its blast radius tight.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+# It needs to write nothing on disk besides pip cache during install (which
+# install.sh does as root); at runtime it is read-only.
+ReadWritePaths=
+
+[Install]
+WantedBy=multi-user.target
