@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>API Verify — Is your API relay serving the model it claims?</title>
-<meta name="description" content="Open-source evidence-based verifier for OpenAI / Anthropic / Gemini API relays. Detect cheap-model substitution, parameter drops, capability degradation." />
+<title data-i18n="page_title">API Verify</title>
+<meta name="description" content="Evidence-based verifier for OpenAI / Anthropic / Gemini API relays. Detect cheap-model substitution, parameter drops, capability degradation." />
 <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
@@ -12,33 +12,32 @@
   <div class="bar">
     <a class="logo" href="/">API&nbsp;Verify</a>
     <nav>
+      <button class="lang-toggle" id="lang-toggle" data-i18n="nav_lang" title="Switch language / 切换语言">中文</button>
+      <a href="#how" data-i18n="nav_how">How it works</a>
+      <a href="#privacy" data-i18n="nav_privacy">Privacy</a>
       <a href="https://github.com/study8677/api_verify" target="_blank" rel="noopener">GitHub</a>
-      <a href="#how">How it works</a>
-      <a href="#privacy">Privacy</a>
     </nav>
   </div>
 </header>
 
 <main>
   <section class="hero">
-    <h1>Is your API relay <em>actually</em> serving the model it claims?</h1>
+    <h1>
+      <span data-i18n="hero_title_a">Is your API relay </span><em data-i18n="hero_title_em">actually</em><span data-i18n="hero_title_b"> serving the model it claims?</span>
+    </h1>
     <p class="lead">
-      Paste a relay endpoint, an API key, and the model name. We run 5 capability and
-      protocol probes designed to expose cheap-model substitution, parameter drops,
-      and capability degradation common to premium models like
-      <code>gpt-4.1</code>, <code>claude-opus-4-x</code>, and <code>gemini-2.5-pro</code>.
+      <span data-i18n="hero_lead">Paste a relay endpoint, an API key, and the model name. We run 5 capability and protocol probes designed to expose cheap-model substitution, parameter drops, and capability degradation common to premium models like </span><code data-i18n="hero_lead_models">gpt-4.1, claude-opus-4-x, gemini-2.5-pro</code>.
     </p>
-    <p class="caveat">
-      Result is an <strong>evidence-based risk score</strong>, not cryptographic proof.
-      <code>model</code>/<code>usage</code>/<code>system_fingerprint</code> can all be forged.
+    <p class="caveat" data-i18n="hero_caveat">
+      Result is an evidence-based risk score, not cryptographic proof.
     </p>
   </section>
 
   <section class="form-card">
-    <form id="verify-form">
+    <form id="verify-form" autocomplete="off">
       <div class="grid">
         <label>
-          <span>Protocol</span>
+          <span data-i18n="form_protocol">Protocol</span>
           <select name="protocol" id="protocol">
             <option value="openai">OpenAI-compatible</option>
             <option value="anthropic">Anthropic native (/v1/messages)</option>
@@ -46,37 +45,46 @@
           </select>
         </label>
         <label class="span-2">
-          <span>Endpoint base URL</span>
-          <input name="endpoint" id="endpoint" required
-                 placeholder="https://api.example.com/v1"
-                 autocomplete="off" />
-          <small class="hint" id="endpoint-hint">For OpenAI-compatible relays. Include the path up to but not including <code>/chat/completions</code>.</small>
+          <span data-i18n="form_endpoint">Endpoint base URL</span>
+          <input name="endpoint" id="endpoint" required placeholder="https://api.example.com/v1" />
+          <small class="hint" id="endpoint-hint"></small>
         </label>
         <label class="span-3">
-          <span>API key</span>
-          <input name="api_key" id="api_key" required type="password"
-                 placeholder="sk-... / your relay key"
-                 autocomplete="off" />
-          <small class="hint">We forward this once to run the probes, then drop it. We don't store keys.</small>
+          <span data-i18n="form_api_key">API key</span>
+          <input name="api_key" id="api_key" required type="password" placeholder="sk-..." />
+          <small class="hint" data-i18n="form_api_key_hint_browser">Sent directly from your browser. Never crosses our server.</small>
         </label>
         <label class="span-2">
-          <span>Model name to verify</span>
-          <input name="model" id="model" required placeholder="gpt-4.1 / claude-opus-4-5 / gemini-2.5-pro"
-                 autocomplete="off" />
+          <span data-i18n="form_model">Model name to verify</span>
+          <input name="model" id="model" required placeholder="gpt-4.1" />
         </label>
         <label>
-          <span>Mode</span>
+          <span data-i18n="form_mode">Mode</span>
           <select name="mode" id="mode">
-            <option value="quick">Quick — 5 probes, ~10s</option>
-            <option value="deep">Deep — 7 probes, ~25s</option>
+            <option value="quick" data-i18n="form_mode_quick">Quick — 5 probes</option>
+            <option value="deep" data-i18n="form_mode_deep">Deep — 7 probes</option>
           </select>
+        </label>
+        <label class="span-3 inline">
+          <input type="checkbox" id="remember-key" />
+          <span data-i18n="form_remember">Remember key in this browser (localStorage)</span>
         </label>
       </div>
       <div class="actions">
-        <button id="submit" type="submit">Run verification</button>
+        <button id="submit" type="submit" data-i18n="form_submit">Run verification</button>
         <span id="status" class="status"></span>
       </div>
+      <div id="mode-badge" class="mode-badge mode-browser"></div>
     </form>
+  </section>
+
+  <section id="cors-prompt" class="prompt hidden">
+    <h3 data-i18n="cors_title">Connection failed</h3>
+    <p data-i18n="cors_msg">Browser-direct call failed.</p>
+    <div class="prompt-actions">
+      <button id="cors-use-server" data-i18n="cors_use_server">Retry via server proxy</button>
+      <button id="cors-cancel" class="secondary" data-i18n="cors_cancel">Cancel</button>
+    </div>
   </section>
 
   <section id="result" class="result hidden">
@@ -86,46 +94,52 @@
         <div class="verdict" id="overall-verdict">—</div>
       </div>
       <div class="meta">
-        <div><span class="k">Probes</span> <span id="meta-probes">—</span></div>
-        <div><span class="k">Latency p50</span> <span id="meta-p50">—</span> ms</div>
-        <div><span class="k">Latency max</span> <span id="meta-max">—</span> ms</div>
-        <div><span class="k">Remaining/hour</span> <span id="meta-remaining">—</span></div>
+        <div><span class="k" data-i18n="result_probes">Probes</span> <span id="meta-probes">—</span></div>
+        <div><span class="k" data-i18n="result_p50">Latency p50</span> <span id="meta-p50">—</span> ms</div>
+        <div><span class="k" data-i18n="result_max">Latency max</span> <span id="meta-max">—</span> ms</div>
+        <div><span class="k" data-i18n="result_mode">Mode</span> <span id="meta-mode">—</span></div>
+        <div><span class="k" data-i18n="result_remaining">Server quota remaining</span> <span id="meta-remaining">—</span></div>
       </div>
     </div>
     <div class="dimensions" id="dimensions"></div>
-    <h3>Per-probe evidence</h3>
+    <h3 data-i18n="result_evidence">Per-probe evidence</h3>
     <div class="evidence" id="evidence"></div>
     <p class="caveat" id="note"></p>
   </section>
 
   <section id="how" class="info">
-    <h2>How the probes work</h2>
+    <h2 data-i18n="how_title">How the probes work</h2>
     <ul>
-      <li><strong>Metadata echo</strong> — Does the response shape and returned <code>model</code> field line up with what the request asked for?</li>
-      <li><strong>JSON mode</strong> — Tells if the relay honors <code>response_format: json_object</code> or silently drops it.</li>
-      <li><strong>Strict tool calling</strong> — Tests whether the relay preserves OpenAI-style strict tool schemas. Cheap models often degrade tool calls to plain text.</li>
-      <li><strong>Error semantics</strong> — Sends an intentionally invalid <code>temperature=99</code>. Real upstreams return a 4xx that names the offending parameter. Relays that silently clamp it are suspicious.</li>
-      <li><strong>Long-context needle</strong> — Plants a passcode inside ~12K characters of padding and asks for it back. Substituted cheap models fail here.</li>
+      <li data-i18n-html="how_1"></li>
+      <li data-i18n-html="how_2"></li>
+      <li data-i18n-html="how_3"></li>
+      <li data-i18n-html="how_4"></li>
+      <li data-i18n-html="how_5"></li>
     </ul>
-    <p>Deep mode additionally runs a deterministic-arithmetic reasoning probe and a knowledge-cutoff probe.</p>
+    <p data-i18n="how_deep"></p>
   </section>
 
   <section id="privacy" class="info">
-    <h2>Privacy &amp; safety</h2>
+    <h2 data-i18n="privacy_title">Privacy &amp; safety</h2>
     <ul>
-      <li>API keys are used once per request and dropped from memory after the verification. They are not written to disk, logs, or any storage.</li>
-      <li>We do not log request or response bodies. Only protocol, model, IP-prefix, and timing.</li>
-      <li>Rate-limited to 5 verifications per hour per IP to limit cost &amp; abuse.</li>
-      <li>For your own safety: prefer a short-lived / low-budget key when testing untrusted relays.</li>
-      <li>Source: <a href="https://github.com/study8677/api_verify" target="_blank" rel="noopener">github.com/study8677/api_verify</a></li>
+      <li data-i18n="privacy_1"></li>
+      <li data-i18n="privacy_2"></li>
+      <li data-i18n-html="privacy_3"></li>
+      <li data-i18n="privacy_4"></li>
+      <li data-i18n="privacy_5"></li>
+      <li data-i18n-html="privacy_6"></li>
     </ul>
   </section>
 </main>
 
 <footer>
-  <p>API Verify · <a href="https://github.com/study8677/api_verify" target="_blank" rel="noopener">source</a> · evidence is not proof</p>
+  <p data-i18n="footer">API Verify · evidence is not proof</p>
 </footer>
 
+<script src="/i18n.js"></script>
+<script src="/probes.js"></script>
+<script src="/scorer.js"></script>
+<script src="/adapters.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>
