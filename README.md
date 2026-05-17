@@ -11,6 +11,10 @@ API Verify is an evidence-oriented verifier for OpenAI-compatible API relay serv
 
 API Verify does not claim to prove the real upstream provider with 100% certainty. Without official signed responses, billing reconciliation, auditable proxy logs, or trusted execution proof, a client can only build a structured evidence chain and produce a risk score.
 
+## Hosted
+
+A public instance runs at **<https://apiverify.aidcmo.com>**. Paste an endpoint, key, and model name to run a quick verification in your browser. Source for the web service lives in [`src/api_verify/web/`](src/api_verify/web/) and deploy notes in [`deploy/`](deploy/README.md).
+
 ## What This Project Does
 
 API Verify evaluates OpenAI-compatible API relay services that claim to route requests to a specific upstream model. It collects protocol evidence, runs low-cost probes, and produces a risk-oriented report about whether the relay appears to preserve the declared upstream behavior.
